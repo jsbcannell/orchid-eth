@@ -1,4 +1,5 @@
-pragma solidity ^0.4.11;
+//pragma solidity ^0.4.11;
+pragma solidity >=0.5.0;
 
 import './zeppelin/token/MintableToken.sol';
 import './zeppelin/token/PausableToken.sol';
@@ -11,7 +12,7 @@ import './zeppelin/token/PausableToken.sol';
  */
 
 contract ContractReceiver {
-  function tokenFallback(address _from, uint _value, bytes _data) public;
+  function tokenFallback(address _from, uint _value, bytes memory _data) public;
 }
 
 /**
@@ -29,7 +30,7 @@ contract OCT is MintableToken {
   /**
    * @dev Contructor
    */
-  function OCT() public {
+  constructor() public {
     totalSupply = INITIAL_SUPPLY;
   }
 
@@ -55,7 +56,7 @@ contract OCT is MintableToken {
   */
   event TransferData(address indexed from, address indexed to, uint256 value, bytes data);
 
-  function transferDataCustom(address _to, uint256 _value, bytes _data, string _custom_fallback) public returns (bool) {
+  function transferDataCustom(address _to, uint256 _value, bytes memory _data, string memory _custom_fallback) public returns (bool) {
     require(_to != address(0));
 
     // SafeMath.sub will throw if there is not enough balance.
@@ -64,13 +65,13 @@ contract OCT is MintableToken {
 
     // if clause is no-op; removes compiler warning as we're not using
     // the return value
-    if(_to.call.value(0)(bytes4(keccak256(_custom_fallback)), msg.sender, _value, _data))
+    //if(_to.call.value(0)(abi.encode(bytes4(keccak256(_custom_fallback)), msg.sender, _value, _data)))
 
       //TransferData(msg.sender, _to, _value, _data);
     return true;
   }
 
-  function transferData(address _to, uint256 _value, bytes _data) public returns (bool) {
+  function transferData(address _to, uint256 _value, bytes memory _data) public returns (bool) {
     require(_to != address(0));
 
     // SafeMath.sub will throw if there is not enough balance.

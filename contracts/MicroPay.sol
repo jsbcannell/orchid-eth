@@ -1,5 +1,6 @@
 //pragma experimental "v0.5.0";
-pragma solidity ^0.4.18;
+//pragma solidity ^0.4.18;
+pragma solidity >=0.5.0;
 
 import './zeppelin/token/ERC20.sol';
 
@@ -53,7 +54,7 @@ contract MicroPay {
   event TicketClaimed (address indexed creator, address indexed recipient, uint faceValue);
   //event Debug(bytes32 indexed ticketHash, address indexed addr1, address indexed addr2);
 
-  function MicroPay(address _OCT) public {
+  constructor(address _OCT) public {
     OCT = ERC20(_OCT);
   }
 
@@ -61,7 +62,7 @@ contract MicroPay {
   // Since OCT is an ERC20 token it cannot be directly sent in a call like ETH.
   // We solve this by having the caller calling the OCT Ledger `transferData`
   // which calls this callback in the recipient.
-  function tokenFallback(address _from, uint _oct, bytes) public {
+  function tokenFallback(address _from, uint _oct, bytes memory) public {
     require(msg.sender == address(OCT));
     require(unlocking[_from] == 0); // sender cannot reuse their account
 
@@ -82,7 +83,7 @@ contract MicroPay {
     ticketFunds[_from] += (_oct - neededOverdraft);
     overdraftFunds[_from] += neededOverdraft;
 
-    Funded(_from, _oct);
+    emit Funded(_from, _oct);
   }
 
   function claimTicket(uint _rand, bytes32 _randHash, uint _nonce, uint _faceValue, uint _winProb, address _recipient,
@@ -114,7 +115,7 @@ contract MicroPay {
     return doClaimTicket(t);
   }
 
-  function doClaimTicket(TicketClaim t) internal {
+  function doClaimTicket(TicketClaim memory t) internal {
     uint res;
     address creator;
     (res, creator) = doValidateTicket(t);
@@ -124,7 +125,7 @@ contract MicroPay {
     if ((res & 8) != 8) { // no slash
       ticketFunds[creator] -= t.faceValue;
       require(  OCT.transfer(t.recipient, t.faceValue));
-      TicketClaimed(creator, t.recipient, t.faceValue);
+      emit TicketClaimed(creator, t.recipient, t.faceValue);
       return;
     }
 
@@ -140,7 +141,7 @@ contract MicroPay {
     overdraftFunds[creator] = 0;
     // TODO: MicroPay contract now still has the sender's tokens, though
     //       unaccounted - consider burning them in the ERC20 ledger too
-    Slashed(creator, t.faceValue, slashAmount);
+    emit Slashed(creator, t.faceValue, slashAmount);
   }
 
   function validateTicket(uint _rand,
@@ -179,14 +180,14 @@ contract MicroPay {
     return doValidateTicket(t);
   }
 
-  function doValidateTicket(TicketClaim t) internal view returns (uint, address) {
+  function doValidateTicket(TicketClaim memory t) internal view returns (uint, address) {
     uint res;
     // verify recipient's (claimed) random number and its hash
-    if (keccak256(t.rand) != t.randHash) {
-      return (res, 0);
+    if (keccak256(abi.encode(t.rand)) != t.randHash) {
+      return (res, address(0));
     }
 
-    bytes32 ticketHash = keccak256(t.randHash, t.recipient, t.faceValue, t.winProb, t.nonce);
+    bytes32 ticketHash = keccak256(abi.encode(t.randHash, t.recipient, t.faceValue, t.winProb, t.nonce));
     address signer1 = ecrecover(ticketHash, t.v1, t.r1, t.s1);
     address signer2 = ecrecover(ticketHash, t.v2, t.r2, t.s2);
 
@@ -195,19 +196,19 @@ contract MicroPay {
     // Verify recipient signature.  Fails on invalid signature or if
     // ticketHash is not the message signed.
     if (signer2 != t.recipient) {
-      return (res, 0);
+      return (res, address(0));
     }
 
     // Verify ticket creator has reserve funds
     if (overdraftFunds[signer1] == 0) {
-      return (res, 0);
+      return (res, address(0));
     }
 
     // Now we know the ticket is valid though it may not be winning and may
     // require slashing of ticket creator
     res ^= 2; // valid
 
-    if (uint(keccak256(ticketHash, t.rand)) <= t.winProb) {
+    if (uint(keccak256(abi.encode(ticketHash, t.rand))) <= t.winProb) {
       res ^= 4; // win
     }
 
@@ -227,7 +228,7 @@ contract MicroPay {
 
     unlocking[signer] = now;
 
-    Unlocked(signer, now);
+    emit Unlocked(signer, now);
   }
 
   function withdrawSenderFunds(uint8 _v1, bytes32 _r1, bytes32 _s1) public {
@@ -242,7 +243,7 @@ contract MicroPay {
     require(OCT.transfer(signer, funds));
     // unlocking[signer] is not cleared to avoid account reuse
 
-    FundsWithdrawn(signer, funds);
+    emit FundsWithdrawn(signer, funds);
   }
 
   // Called locally by the ticket recipient when validating received tickets
