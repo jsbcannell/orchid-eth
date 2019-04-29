@@ -91,6 +91,11 @@ contract MicroPay {
 		       uint8 _v2, bytes32 _r2, bytes32 _s2  // signature from recipient pubkey
 		       ) public {
 
+
+    log0(
+        bytes32("claimTicket 0")
+    );
+
     /* To get around solidity's low limit on number of local variables
        (which counts function parameters) we pass the params on as a struct.
        Note that we cannot do this in the public API functions
@@ -112,26 +117,32 @@ contract MicroPay {
     t.r2 = _r2;
     t.s2 = _s2;
 
+    //return;
     return doClaimTicket(t);
   }
 
   function doClaimTicket(TicketClaim memory t) internal {
+    //return;
     uint res;
     address creator;
     (res, creator) = doValidateTicket(t);
-    require((res & 2) == 2); // valid
-    require((res & 4) == 4); // win
+    
+    require((res & 2) == 2, "(res & 2) == 2"); // valid
+    
+    require((res & 4) == 4, "(res & 4) == 4"); // win
+
 
     if ((res & 8) != 8) { // no slash
       ticketFunds[creator] -= t.faceValue;
-      require(  OCT.transfer(t.recipient, t.faceValue));
+      require(  OCT.transfer(t.recipient, t.faceValue), "OCT.transfer(t.recipient, t.faceValue)" );
       emit TicketClaimed(creator, t.recipient, t.faceValue);
       return;
     }
 
+
     // creator does not have enough funds, time to slash:
     // first, send available funds to recipient (validated to be less than ticket face value)
-    require(OCT.transfer(t.recipient, ticketFunds[creator]));
+    require(OCT.transfer(t.recipient, ticketFunds[creator]), "OCT.transfer(t.recipient, ticketFunds[creator])");
     ticketFunds[creator] = 0;
     // TODO: consider sending recipient some of the reserve funds as incentive
     //       to slash (but not enough to render slashing ineffective)
@@ -142,6 +153,9 @@ contract MicroPay {
     // TODO: MicroPay contract now still has the sender's tokens, though
     //       unaccounted - consider burning them in the ERC20 ledger too
     emit Slashed(creator, t.faceValue, slashAmount);
+
+    /*
+    */
   }
 
   function validateTicket(uint _rand,
@@ -183,11 +197,11 @@ contract MicroPay {
   function doValidateTicket(TicketClaim memory t) internal view returns (uint, address) {
     uint res;
     // verify recipient's (claimed) random number and its hash
-    if (keccak256(abi.encode(t.rand)) != t.randHash) {
+    if (keccak256(abi.encodePacked(t.rand)) != t.randHash) {
       return (res, address(0));
     }
 
-    bytes32 ticketHash = keccak256(abi.encode(t.randHash, t.recipient, t.faceValue, t.winProb, t.nonce));
+    bytes32 ticketHash = keccak256(abi.encodePacked(t.randHash, t.recipient, t.faceValue, t.winProb, t.nonce));
     address signer1 = ecrecover(ticketHash, t.v1, t.r1, t.s1);
     address signer2 = ecrecover(ticketHash, t.v2, t.r2, t.s2);
 
@@ -208,7 +222,8 @@ contract MicroPay {
     // require slashing of ticket creator
     res ^= 2; // valid
 
-    if (uint(keccak256(abi.encode(ticketHash, t.rand))) <= t.winProb) {
+    //if (uint(keccak256(abi.encodePacked(ticketHash, t.rand))) <= t.winProb) { // jc: this doesn't make sense, t.rand doesn't need to be hashed
+    if (t.rand <= t.winProb) { // jc: this seems like the correct test?  
       res ^= 4; // win
     }
 
