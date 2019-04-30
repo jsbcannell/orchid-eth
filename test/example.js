@@ -178,10 +178,9 @@ describe('Example of ticket creation & claiming:', function () {
 
     console.log("13a");
 
-/*
 	// verify
-	const relayMETBal = await c.getMETBalance(relay.address).call();
-	assert.equal(relayMETBal, faceValue);
+	const relayOCTBal = await c.getOCTBalance(relay.address).call();
+	assert.equal(relayOCTBal, faceValue);
 
     console.log("14");
 
@@ -211,6 +210,7 @@ describe('Example of ticket creation & claiming:', function () {
 
     console.log("18");
     
+/*
     */
 
 	// TODO: validate remaining ticket and ticket account invariants
