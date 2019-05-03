@@ -26,6 +26,7 @@ contract MicroPay {
     uint nonce;
     uint faceValue;
     uint winProb;
+    address sender;
     address recipient;
     uint8 v1; bytes32 r1; bytes32 s1;
     uint8 v2; bytes32 r2; bytes32 s2;
@@ -86,7 +87,7 @@ contract MicroPay {
     emit Funded(_from, _oct);
   }
 
-  function claimTicket(uint _rand, bytes32 _randHash, uint _nonce, uint _faceValue, uint _winProb, address _recipient,
+  function claimTicket(uint _rand, bytes32 _randHash, uint _nonce, uint _faceValue, uint _winProb, address _sender, address _recipient,
 		       uint8 _v1, bytes32 _r1, bytes32 _s1, // signature over ticket struct by creator
 		       uint8 _v2, bytes32 _r2, bytes32 _s2  // signature from recipient pubkey
 		       ) public {
@@ -107,6 +108,7 @@ contract MicroPay {
     t.nonce	= _nonce;
     t.faceValue	= _faceValue;
     t.winProb	= _winProb;
+    t.sender    = _sender;
     t.recipient	= _recipient;
 
     t.v1 = _v1;
@@ -164,6 +166,7 @@ contract MicroPay {
 			  uint _nonce,
 			  uint _faceValue,
 			  uint _winProb,
+			  address _sender,
 			  address _recipient,
 			  uint8 _v1, bytes32 _r1, bytes32 _s1, // signature over ticket struct by creator
 			  uint8 _v2, bytes32 _r2, bytes32 _s2  // signature from recipient pubkey
@@ -182,6 +185,7 @@ contract MicroPay {
     t.nonce	= _nonce;
     t.faceValue	= _faceValue;
     t.winProb	= _winProb;
+    t.sender    = _sender;
     t.recipient	= _recipient;
 
     t.v1 = _v1;
@@ -208,9 +212,13 @@ contract MicroPay {
 
     //Debug(ticketHash, signer1, signer2);
 
-    // b.) Verify recipient signature.  Fails on invalid signature or if
-    // ticketHash is not the message signed.
+    // b.) Verify recipient signature.  Fails on invalid signature or if ticketHash is not the message signed.
     if (signer2 != t.recipient) {
+      return (res, address(0));
+    }
+    
+    // b2.) (new) verify sender signature.
+    if (signer1 != t.sender) {
       return (res, address(0));
     }
 
