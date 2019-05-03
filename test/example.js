@@ -138,8 +138,7 @@ describe('Example of ticket creation & claiming:', function () {
 	var faceValue = c.web3.utils.toWei('0.1','ether');;
 	// so we're guaranteed to win in this test
 	var winProb = (new BigNumber(2)).pow(256).sub(1);
-	//winProb = winProb.sub(winProb);
-	//var winProb = new BigNumber(0);
+	//var winProb = new BigNumber(33);
 
 
     console.log("11");

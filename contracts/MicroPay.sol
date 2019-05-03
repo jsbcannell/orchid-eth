@@ -132,6 +132,8 @@ contract MicroPay {
     require((res & 4) == 4, "(res & 4) == 4"); // win
 
 
+    // a.) If SLASH = FALSE, then the ticket is paid out: faceValue is transferred from the creator’s ticket
+    // funds to recipient.
     if ((res & 8) != 8) { // no slash
       ticketFunds[creator] -= t.faceValue;
       require(  OCT.transfer(t.recipient, t.faceValue), "OCT.transfer(t.recipient, t.faceValue)" );
@@ -140,6 +142,7 @@ contract MicroPay {
     }
 
 
+    // (b). If SLASH = TRUE, then creator is slashed.
     // creator does not have enough funds, time to slash:
     // first, send available funds to recipient (validated to be less than ticket face value)
     require(OCT.transfer(t.recipient, ticketFunds[creator]), "OCT.transfer(t.recipient, ticketFunds[creator])");
@@ -154,8 +157,6 @@ contract MicroPay {
     //       unaccounted - consider burning them in the ERC20 ledger too
     emit Slashed(creator, t.faceValue, slashAmount);
 
-    /*
-    */
   }
 
   function validateTicket(uint _rand,
@@ -196,7 +197,7 @@ contract MicroPay {
 
   function doValidateTicket(TicketClaim memory t) internal view returns (uint, address) {
     uint res;
-    // verify recipient's (claimed) random number and its hash
+    // a.) verify recipient's (claimed) random number and its hash
     if (keccak256(abi.encodePacked(t.rand)) != t.randHash) {
       return (res, address(0));
     }
@@ -207,13 +208,13 @@ contract MicroPay {
 
     //Debug(ticketHash, signer1, signer2);
 
-    // Verify recipient signature.  Fails on invalid signature or if
+    // b.) Verify recipient signature.  Fails on invalid signature or if
     // ticketHash is not the message signed.
     if (signer2 != t.recipient) {
       return (res, address(0));
     }
 
-    // Verify ticket creator has reserve funds
+    // c.) Verify addressAlice has Orchid Tokens locked up in the penalty escrow account. If not, abort execution.
     if (overdraftFunds[signer1] == 0) {
       return (res, address(0));
     }
@@ -221,15 +222,20 @@ contract MicroPay {
     // Now we know the ticket is valid though it may not be winning and may
     // require slashing of ticket creator
     res ^= 2; // valid
-
-    //if (uint(keccak256(abi.encodePacked(ticketHash, t.rand))) <= t.winProb) { // jc: this doesn't make sense, t.rand doesn't need to be hashed
-    if (t.rand <= t.winProb) { // jc: this seems like the correct test?  
-      res ^= 4; // win
-    }
-
+    
+    // d.) addressAlice has enough Orchid Tokens locked up in it’s ticket account to pay for the ticket. If
+    // not, set SLASH to TRUE and continue execution.
     if (ticketFunds[signer1] < t.faceValue) {
       res ^= 8; // slash
     }
+
+
+    // e.) H(ticketHash, rand) ≤ winProb. If not, abort execution
+    if (uint(keccak256(abi.encodePacked(ticketHash, t.rand))) <= t.winProb) {
+    //if (t.rand <= t.winProb) { 
+      res ^= 4; // win
+    }
+
 
     return (res, signer1);
   }
