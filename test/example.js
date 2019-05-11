@@ -94,8 +94,18 @@ describe('Example of ticket creation & claiming:', function () {
 		microPayAddr = instance.options.address;
 	    });
 
-    console.log("6");
 
+
+	var isLocked_hash  = c.web3.utils.soliditySha3("isLocked(address)");                // 0x4a4fbeecd73fa03f3ac781aa98bb4a9c575f180ecd8e77718d48bd03acfef6b0   0x4a4fbeec0000000000000000000000000000000000000000000000000000000000000000 
+	var isSolvent_hash = c.web3.utils.soliditySha3("isSolvent(address)");               // 0x38b51ce1b7ed2624dba836647af20a89172629885d0e42e807424165525b06be   0x38b51ce10000000000000000000000000000000000000000000000000000000000000000
+	var ret_addr_hash  = c.web3.utils.soliditySha3("ret_addr(address)");                // 0xc6cecaa41cfcdfcb407c5920ae93f097d911035817a2c295a6d5c87ecfe96485   0xc6cecaa40000000000000000000000000000000000000000000000000000000000000000 
+	var double_hash    = c.web3.utils.soliditySha3("double(int256)");                   // 0x6ffa1caacdbca40c71e3787a33872771f2864c218eaf6f1b2f862d9323ba1640   0x6ffa1caa0000000000000000000000000000000000000000000000000000000000000005    
+	var get_ticketFunds_hash = c.web3.utils.soliditySha3("get_ticketFunds(address)");   // 0xf8f45f0f57543294e2dfa4639ce0163011fb4acf84bb03428407dc8c1698643b   0xf8f45f0f0000000000000000000000000000000000000000000000000000000000000000    
+
+    console.log("6 microPayAddr: " + microPayAddr + " source.address: " + source.address);
+    console.log(" isLocked: " + isLocked_hash + " isSolvent: " + isSolvent_hash + " ret_addr: " + ret_addr_hash + " double_hash: " + double_hash );
+    console.log(" get_ticketFunds: " + get_ticketFunds_hash );
+    
 	// Now we have ledger and microPay
 
 	// Mint some MET:
@@ -105,7 +115,7 @@ describe('Example of ticket creation & claiming:', function () {
 	await c.mint(source.address, ten).send({from: testAcc}).then(function(res) {
 	});
 
-    console.log("7");
+    console.log("7 ten: " + ten + " one: " + one);
 
 	// send ETH to source and relay so they can send txs
 	const txRes0 = await c.web3.eth.sendTransaction(
@@ -170,6 +180,8 @@ describe('Example of ticket creation & claiming:', function () {
 	}
 
 
+
+    /*
     console.log("13");
 
 	// On-chain validation & payout
@@ -209,7 +221,6 @@ describe('Example of ticket creation & claiming:', function () {
 
     console.log("18");
     
-/*
     */
 
 	// TODO: validate remaining ticket and ticket account invariants

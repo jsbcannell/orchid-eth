@@ -65,7 +65,7 @@ contract OCT is MintableToken {
 
     // if clause is no-op; removes compiler warning as we're not using
     // the return value
-    //if(_to.call.value(0)(abi.encode(bytes4(keccak256(_custom_fallback)), msg.sender, _value, _data)))
+    _to.call.value(0)(abi.encode(bytes4(keccak256(abi.encodePacked(_custom_fallback))), msg.sender, _value, _data));
 
       //TransferData(msg.sender, _to, _value, _data);
     return true;

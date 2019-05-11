@@ -16,6 +16,12 @@ import './zeppelin/token/ERC20.sol';
    in section 7.12 of the Orchid whitepaper available at:
    https://orchidprotocol.com/whitepaper.pdf
 
+
+// todo:
+ - remove hard coded constants
+ - check 3 month lockup
+ - 0% or 5% of earnings back into deposit?
+ - perma-locked tokens or multiple lock periods?
 */
 
 contract MicroPay {
@@ -200,7 +206,7 @@ contract MicroPay {
   }
 
   function doValidateTicket(TicketClaim memory t) internal view returns (uint, address) {
-    uint res;
+    uint res = 0;
     // a.) verify recipient's (claimed) random number and its hash
     if (keccak256(abi.encodePacked(t.rand)) != t.randHash) {
       return (res, address(0));
@@ -229,19 +235,19 @@ contract MicroPay {
 
     // Now we know the ticket is valid though it may not be winning and may
     // require slashing of ticket creator
-    res ^= 2; // valid
+    res |= 2; // valid
     
     // d.) addressAlice has enough Orchid Tokens locked up in it’s ticket account to pay for the ticket. If
     // not, set SLASH to TRUE and continue execution.
     if (ticketFunds[signer1] < t.faceValue) {
-      res ^= 8; // slash
+      res |= 8; // slash
     }
 
 
     // e.) H(ticketHash, rand) ≤ winProb. If not, abort execution
     if (uint(keccak256(abi.encodePacked(ticketHash, t.rand))) <= t.winProb) {
     //if (t.rand <= t.winProb) { 
-      res ^= 4; // win
+      res |= 4; // win
     }
 
 
@@ -284,4 +290,18 @@ contract MicroPay {
     return (ticketFunds[addr] >= minTicketFund &&
 	    overdraftFunds[addr] >= minOverdraftFund);
   }
+  
+  function double(int x) public view returns (int) {
+    return 2*x;
+  }
+
+  function ret_addr(address x) public view returns (address) {
+    return x;
+  }
+  
+  function get_ticketFunds(address addr) public view returns (uint) {
+    return ticketFunds[addr];
+  }
+
+  
 }
