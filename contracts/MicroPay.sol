@@ -22,6 +22,9 @@ import './zeppelin/token/ERC20.sol';
  - check 3 month lockup
  - 0% or 5% of earnings back into deposit?
  - perma-locked tokens or multiple lock periods?
+ - slash incentive
+ - NACs are lottery tickets that can only be sent to medallion holders
+  - store a block number?
 */
 
 contract MicroPay {
