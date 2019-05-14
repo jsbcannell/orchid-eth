@@ -181,7 +181,6 @@ describe('Example of ticket creation & claiming:', function () {
 
 
 
-    /*
     console.log("13");
 
 	// On-chain validation & payout
@@ -221,7 +220,6 @@ describe('Example of ticket creation & claiming:', function () {
 
     console.log("18");
     
-    */
 
 	// TODO: validate remaining ticket and ticket account invariants
     });

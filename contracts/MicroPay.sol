@@ -19,12 +19,13 @@ import './zeppelin/token/ERC20.sol';
 
 // todo:
  - remove hard coded constants
- - check 3 month lockup
+ - check 1 day lockup?
  - 0% or 5% of earnings back into deposit?
  - perma-locked tokens or multiple lock periods?
  - slash incentive
  - NACs are lottery tickets that can only be sent to medallion holders
   - store a block number?
+ - replace multiple basic mappings with single struct mapping
 */
 
 contract MicroPay {
@@ -47,9 +48,9 @@ contract MicroPay {
   mapping(address => uint) public overdraftFunds;
   mapping(address => uint) public unlocking;
 
-  uint public minTicketFund    = 1 ether / 100;
-  uint public minOverdraftFund = 1 ether / 100;
-  uint public minTopUp         = 1 ether / 100;
+  uint public minTicketFund    = 1 ether / 100000;
+  uint public minOverdraftFund = 1 ether / 100000;
+  uint public minTopUp         = 1 ether / 100000;
   uint public minFirstFund = minTicketFund + minOverdraftFund + minTopUp;
 
   uint public unlockDelay = 1 days;
@@ -304,6 +305,14 @@ contract MicroPay {
   
   function get_ticketFunds(address addr) public view returns (uint) {
     return ticketFunds[addr];
+  }
+
+  function get_overdraftFunds(address addr) public view returns (uint) {
+    return overdraftFunds[addr];
+  }
+  
+  function get_state(address addr) public view returns (uint,uint,uint) {
+    return (ticketFunds[addr], overdraftFunds[addr], unlocking[addr]);
   }
 
   
