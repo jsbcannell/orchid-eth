@@ -17,6 +17,10 @@
      - scroll down to the `c.transferData` call to see where to begin
 */
 
+
+/*
+
+
 // Only these two imports are needed in app
 var Accounts  = require('../lib/accounts/accounts.js');
 var Contracts = require('../lib/contracts/contracts.js');
@@ -36,7 +40,7 @@ describe('Example of ticket creation & claiming:', function () {
     it('Example', async () => {
 	// TEST SETUP CODE
 
-    console.log("1");
+    console.log("[39]: Example start");
 
 	// this assumes testrpc started as:
 	// testrpc -d --network-id 10
@@ -52,7 +56,7 @@ describe('Example of ticket creation & claiming:', function () {
 	const relay  = a.newKey(password);
 	const source = a.newKey(password);
 
-    console.log("2");
+    console.log("[55]: relay: " + relay + " source: " + source);
 
 	var c;
 	try {
@@ -140,6 +144,12 @@ describe('Example of ticket creation & claiming:', function () {
 	const solvent = await c.isSolvent(source.address);
 	assert.equal(solvent, true);
 
+
+    const solvent2          = await c.microPay.methods.isSolvent(source.address).call();
+
+    const microPayAddr_this = await c.microPay.methods.get_address().call();
+
+
     console.log("10");
 
 	// new ticket with source as creator
@@ -224,3 +234,6 @@ describe('Example of ticket creation & claiming:', function () {
 	// TODO: validate remaining ticket and ticket account invariants
     });
 });
+
+
+*/

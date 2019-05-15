@@ -303,6 +303,11 @@ contract MicroPay {
     return x;
   }
   
+  function get_address() public view returns (address) {
+    return address(this);
+  }
+
+  
   function get_ticketFunds(address addr) public view returns (uint) {
     return ticketFunds[addr];
   }
